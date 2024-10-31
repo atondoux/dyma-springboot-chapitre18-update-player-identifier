@@ -58,11 +58,11 @@ public class PlayerServiceTest {
     @Test
     public void shouldRetrievePlayer() {
         // Given
-        String playerToRetrieve = "nadal";
-        Mockito.when(playerRepository.findOneByLastNameIgnoreCase(playerToRetrieve)).thenReturn(Optional.of(PlayerEntityList.RAFAEL_NADAL));
+        String playerToRetrieve = "rafaelnadaltest";
+        Mockito.when(playerRepository.findOneByIdentifier(playerToRetrieve)).thenReturn(Optional.of(PlayerEntityList.RAFAEL_NADAL));
 
         // When
-        Player retrievedPlayer = playerService.getByLastName(playerToRetrieve);
+        Player retrievedPlayer = playerService.getByIdentifier(playerToRetrieve);
 
         // Then
         Assertions.assertThat(retrievedPlayer.lastName()).isEqualTo("Nadal");
@@ -72,12 +72,12 @@ public class PlayerServiceTest {
     public void shouldFailToRetrievePlayer_WhenPlayerDoesNotExist() {
         // Given
         String unknownPlayer = "doe";
-        Mockito.when(playerRepository.findOneByLastNameIgnoreCase(unknownPlayer)).thenReturn(Optional.empty());
+        Mockito.when(playerRepository.findOneByIdentifier(unknownPlayer)).thenReturn(Optional.empty());
 
         // When / Then
         Exception exception = assertThrows(PlayerNotFoundException.class, () -> {
-            playerService.getByLastName(unknownPlayer);
+            playerService.getByIdentifier(unknownPlayer);
         });
-        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with last name doe could not be found.");
+        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier doe could not be found.");
     }
 }

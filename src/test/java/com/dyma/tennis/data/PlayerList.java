@@ -11,6 +11,7 @@ import java.util.List;
 public class PlayerList {
 
     public static Player RAFAEL_NADAL = new Player(
+            "rafaelnadal",
             "Rafael",
             "Nadal",
             LocalDate.of(1986, Month.JUNE, 3),
@@ -18,6 +19,7 @@ public class PlayerList {
     );
 
     public static Player NOVAK_DJOKOVIC = new Player(
+            "novakdjokovic",
             "Novak",
             "Djokovic",
             LocalDate.of(1987, Month.MAY, 22),
@@ -25,6 +27,7 @@ public class PlayerList {
     );
 
     public static Player ROGER_FEDERER = new Player(
+            "rogerfederer",
             "Roger",
             "Federer",
             LocalDate.of(1981, Month.AUGUST, 8),
@@ -32,6 +35,7 @@ public class PlayerList {
     );
 
     public static Player ANDY_MURRAY = new Player(
+            "andymurray",
             "Andy",
             "Murray",
             LocalDate.of(1987, Month.MAY, 15),

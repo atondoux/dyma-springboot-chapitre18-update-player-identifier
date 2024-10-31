@@ -43,11 +43,11 @@ public class PlayerControllerTest {
     @Test
     public void shouldRetrievePlayer() throws Exception {
         // Given
-        String playerToRetrieve = "nadal";
-        Mockito.when(playerService.getByLastName(playerToRetrieve)).thenReturn(PlayerList.RAFAEL_NADAL);
+        String playerToRetrieve = "rafaelnadaltest";
+        Mockito.when(playerService.getByIdentifier(playerToRetrieve)).thenReturn(PlayerList.RAFAEL_NADAL);
 
         // When / Then
-        mockMvc.perform(get("/players/nadal"))
+        mockMvc.perform(get("/players/rafaelnadaltest"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastName", CoreMatchers.is("Nadal")))
                 .andExpect(jsonPath("$.rank.position", CoreMatchers.is(1)));
@@ -56,11 +56,11 @@ public class PlayerControllerTest {
     @Test
     public void shouldReturn404NotFound_WhenPlayerDoesNotExist() throws Exception {
         // Given
-        String playerToRetrieve = "doe";
-        Mockito.when(playerService.getByLastName(playerToRetrieve)).thenThrow(new PlayerNotFoundException("Player doe does not exist"));
+        String playerToRetrieve = "johndoe";
+        Mockito.when(playerService.getByIdentifier(playerToRetrieve)).thenThrow(new PlayerNotFoundException("Player johndoe does not exist"));
 
         // When / Then
-        mockMvc.perform(get("/players/doe"))
+        mockMvc.perform(get("/players/johndoe"))
                 .andExpect(status().isNotFound());
     }
 }
