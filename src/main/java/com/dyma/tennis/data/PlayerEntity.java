@@ -19,6 +19,9 @@ public class PlayerEntity {
     @Column(name = "first_name", length = 50, nullable = false)
     private String firstName;
 
+    @Column(name = "identifier", length = 100, nullable = false, unique = true)
+    private String identifier;
+
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
@@ -34,6 +37,7 @@ public class PlayerEntity {
     public PlayerEntity(String lastName, String firstName, LocalDate birthDate, Integer points, Integer rank) {
         this.lastName = lastName;
         this.firstName = firstName;
+        this.identifier = generateIdentifier();
         this.birthDate = birthDate;
         this.points = points;
         this.rank = rank;
@@ -43,15 +47,29 @@ public class PlayerEntity {
         this.id = id;
         this.lastName = lastName;
         this.firstName = firstName;
+        this.identifier = generateIdentifier();
         this.birthDate = birthDate;
         this.points = points;
         this.rank = rank;
     }
 
-    public Long getId() { return id; }
+    private String generateIdentifier() {
+        return (this.firstName + this.lastName)
+                .toLowerCase()
+                .transform(s -> s.replaceAll("[^a-z0-9]", ""));
+    }
+
+    public Long getId() {
+        return id;
+    }
 
     public String getLastName() {
         return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+        this.identifier = generateIdentifier();
     }
 
     public String getFirstName() {
@@ -60,6 +78,11 @@ public class PlayerEntity {
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+        this.identifier = generateIdentifier();
+    }
+
+    public String getIdentifier() {
+        return identifier;
     }
 
     public LocalDate getBirthDate() {

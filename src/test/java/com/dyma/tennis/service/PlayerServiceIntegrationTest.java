@@ -1,7 +1,8 @@
 package com.dyma.tennis.service;
 
 import com.dyma.tennis.model.Player;
-import com.dyma.tennis.model.PlayerToSave;
+import com.dyma.tennis.model.PlayerToCreate;
+import com.dyma.tennis.model.PlayerToUpdate;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.flywaydb.core.Flyway;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -32,7 +32,7 @@ public class PlayerServiceIntegrationTest {
     @Test
     public void shouldCreatePlayer() {
         // Given
-        PlayerToSave playerToSave = new PlayerToSave(
+        PlayerToCreate playerToCreate = new PlayerToCreate(
                 "John",
                 "Doe",
                 LocalDate.of(2000, Month.JANUARY, 1),
@@ -40,8 +40,8 @@ public class PlayerServiceIntegrationTest {
         );
 
         // When
-        playerService.create(playerToSave);
-        Player createdPlayer = playerService.getByLastName("doe");
+        playerService.create(playerToCreate);
+        Player createdPlayer = playerService.getByIdentifier("johndoe");
 
         // Then
         Assertions.assertThat(createdPlayer.firstName()).isEqualTo("John");
@@ -52,9 +52,34 @@ public class PlayerServiceIntegrationTest {
     }
 
     @Test
+    public void shouldFailToCreateAnExistingPlayer() {
+        // Given
+        PlayerToCreate playerToCreate = new PlayerToCreate(
+                "John",
+                "Doe",
+                LocalDate.of(2000, Month.JANUARY, 1),
+                10000
+        );
+        playerService.create(playerToCreate);
+        PlayerToCreate samePlayerToCreate = new PlayerToCreate(
+                "John",
+                "Doe",
+                LocalDate.of(2000, Month.JANUARY, 1),
+                12000
+        );
+
+        // When / Then
+        Exception exception = assertThrows(PlayerDataRetrievalException.class, () -> {
+            playerService.create(samePlayerToCreate);
+        });
+        Assertions.assertThat(exception.getMessage()).contains("Could not retrieve player data");
+    }
+
+    @Test
     public void shouldUpdatePlayer() {
         // Given
-        PlayerToSave playerToSave = new PlayerToSave(
+        PlayerToUpdate playerToUpdate = new PlayerToUpdate(
+                "rafaelnadaltest",
                 "Rafael",
                 "NadalTest",
                 LocalDate.of(1986, Month.JUNE, 3),
@@ -62,8 +87,8 @@ public class PlayerServiceIntegrationTest {
         );
 
         // When
-        playerService.update(playerToSave);
-        Player updatedPlayer = playerService.getByLastName("NadalTest");
+        playerService.update(playerToUpdate);
+        Player updatedPlayer = playerService.getByIdentifier("rafaelnadaltest");
 
         // Then
         Assertions.assertThat(updatedPlayer.rank().position()).isEqualTo(3);
@@ -72,27 +97,30 @@ public class PlayerServiceIntegrationTest {
     @Test
     public void shouldDeletePlayer() {
         // Given
-        String playerToDelete = "DjokovicTest";
+        String playerToDelete = "novakdjokovictest";
 
         // When
         playerService.delete(playerToDelete);
-        List<Player> allPlayers = playerService.getAllPlayers();
 
         // Then
+        List<Player> allPlayers = playerService.getAllPlayers();
         Assertions.assertThat(allPlayers)
                 .extracting("lastName", "rank.position")
-                .containsExactly(Tuple.tuple("NadalTest", 1), Tuple.tuple("FedererTest", 2));
+                .containsExactly(
+                        Tuple.tuple("NadalTest", 1),
+                        Tuple.tuple("FedererTest", 2)
+                );
     }
 
     @Test
     public void shouldFailToDeletePlayer_WhenPlayerDoesNotExist() {
         // Given
-        String playerToDelete = "DoeTest";
+        String playerToDelete = "johndoetest";
 
         // When / Then
         Exception exception = assertThrows(PlayerNotFoundException.class, () -> {
             playerService.delete(playerToDelete);
         });
-        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with last name DoeTest could not be found.");
+        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier johndoetest could not be found.");
     }
 }
