@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -40,8 +41,8 @@ public class PlayerServiceIntegrationTest {
         );
 
         // When
-        playerService.create(playerToCreate);
-        Player createdPlayer = playerService.getByIdentifier("johndoe");
+        Player savedPlayer = playerService.create(playerToCreate);
+        Player createdPlayer = playerService.getByIdentifier(savedPlayer.identifier());
 
         // Then
         Assertions.assertThat(createdPlayer.firstName()).isEqualTo("John");
@@ -61,7 +62,7 @@ public class PlayerServiceIntegrationTest {
                 10000
         );
         playerService.create(playerToCreate);
-        PlayerToCreate samePlayerToCreate = new PlayerToCreate(
+        PlayerToCreate duplicatedPlayerToCreate = new PlayerToCreate(
                 "John",
                 "Doe",
                 LocalDate.of(2000, Month.JANUARY, 1),
@@ -69,17 +70,21 @@ public class PlayerServiceIntegrationTest {
         );
 
         // When / Then
-        Exception exception = assertThrows(PlayerDataRetrievalException.class, () -> {
-            playerService.create(samePlayerToCreate);
+        Exception exception = assertThrows(PlayerAlreadyExistsException.class, () -> {
+            playerService.create(duplicatedPlayerToCreate);
         });
-        Assertions.assertThat(exception.getMessage()).contains("Could not retrieve player data");
+        Assertions.assertThat(exception.getMessage()).contains("Player with " +
+                "firstName John " +
+                "lastName Doe " +
+                "and birthDate 2000-01-01 already exists.");
     }
 
     @Test
     public void shouldUpdatePlayer() {
         // Given
+        UUID nadalIdentifier = UUID.fromString("b466c6f7-52c6-4f25-b00d-c562be41311e");
         PlayerToUpdate playerToUpdate = new PlayerToUpdate(
-                "rafaelnadaltest",
+                nadalIdentifier,
                 "Rafael",
                 "NadalTest",
                 LocalDate.of(1986, Month.JUNE, 3),
@@ -88,7 +93,7 @@ public class PlayerServiceIntegrationTest {
 
         // When
         playerService.update(playerToUpdate);
-        Player updatedPlayer = playerService.getByIdentifier("rafaelnadaltest");
+        Player updatedPlayer = playerService.getByIdentifier(nadalIdentifier);
 
         // Then
         Assertions.assertThat(updatedPlayer.rank().position()).isEqualTo(3);
@@ -97,10 +102,10 @@ public class PlayerServiceIntegrationTest {
     @Test
     public void shouldDeletePlayer() {
         // Given
-        String playerToDelete = "novakdjokovictest";
+        UUID djokovicIdentifier = UUID.fromString("d27aef45-51cd-401b-a04a-b78a1327b793");
 
         // When
-        playerService.delete(playerToDelete);
+        playerService.delete(djokovicIdentifier);
 
         // Then
         List<Player> allPlayers = playerService.getAllPlayers();
@@ -115,12 +120,12 @@ public class PlayerServiceIntegrationTest {
     @Test
     public void shouldFailToDeletePlayer_WhenPlayerDoesNotExist() {
         // Given
-        String playerToDelete = "johndoetest";
+        UUID playerToDelete = UUID.fromString("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
 
         // When / Then
         Exception exception = assertThrows(PlayerNotFoundException.class, () -> {
             playerService.delete(playerToDelete);
         });
-        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier johndoetest could not be found.");
+        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb could not be found.");
     }
 }

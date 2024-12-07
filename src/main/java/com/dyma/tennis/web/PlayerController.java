@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Tag(name = "Tennis Players API")
 @RestController
@@ -51,7 +52,7 @@ public class PlayerController {
 
     })
     @GetMapping("{identifier}")
-    public Player getPlayer(@PathVariable("identifier") String identifier) {
+    public Player getPlayer(@PathVariable("identifier") UUID identifier) {
         return playerService.getByIdentifier(identifier);
     }
 
@@ -97,7 +98,7 @@ public class PlayerController {
 
     })
     @DeleteMapping("{identifier}")
-    public void deletePlayer(@PathVariable("identifier") String identifier) {
+    public void deletePlayer(@PathVariable("identifier") UUID identifier) {
         playerService.delete(identifier);
     }
 }
