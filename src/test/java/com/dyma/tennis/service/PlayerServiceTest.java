@@ -1,8 +1,8 @@
 package com.dyma.tennis.service;
 
-import com.dyma.tennis.model.Player;
 import com.dyma.tennis.data.PlayerEntityList;
 import com.dyma.tennis.data.PlayerRepository;
+import com.dyma.tennis.model.Player;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +13,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -58,7 +59,7 @@ public class PlayerServiceTest {
     @Test
     public void shouldRetrievePlayer() {
         // Given
-        String playerToRetrieve = "rafaelnadaltest";
+        UUID playerToRetrieve = UUID.fromString("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
         Mockito.when(playerRepository.findOneByIdentifier(playerToRetrieve)).thenReturn(Optional.of(PlayerEntityList.RAFAEL_NADAL));
 
         // When
@@ -71,13 +72,13 @@ public class PlayerServiceTest {
     @Test
     public void shouldFailToRetrievePlayer_WhenPlayerDoesNotExist() {
         // Given
-        String unknownPlayer = "doe";
+        UUID unknownPlayer = UUID.fromString("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
         Mockito.when(playerRepository.findOneByIdentifier(unknownPlayer)).thenReturn(Optional.empty());
 
         // When / Then
         Exception exception = assertThrows(PlayerNotFoundException.class, () -> {
             playerService.getByIdentifier(unknownPlayer);
         });
-        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier doe could not be found.");
+        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb could not be found.");
     }
 }

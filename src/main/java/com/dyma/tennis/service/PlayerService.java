@@ -1,11 +1,11 @@
 package com.dyma.tennis.service;
 
+import com.dyma.tennis.data.PlayerEntity;
+import com.dyma.tennis.data.PlayerRepository;
 import com.dyma.tennis.model.Player;
 import com.dyma.tennis.model.PlayerToCreate;
 import com.dyma.tennis.model.PlayerToUpdate;
 import com.dyma.tennis.model.Rank;
-import com.dyma.tennis.data.PlayerEntity;
-import com.dyma.tennis.data.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +49,7 @@ public class PlayerService {
         }
     }
 
-    public Player getByIdentifier(String identifier) {
+    public Player getByIdentifier(UUID identifier) {
         log.info("Invoking getByIdentifier with identifier={}", identifier);
         try {
             Optional<PlayerEntity> player = playerRepository.findOneByIdentifier(identifier);
@@ -71,10 +72,20 @@ public class PlayerService {
 
     public Player create(PlayerToCreate playerToCreate) {
         log.info("Invoking create with playerToCreate={}", playerToCreate);
+
         try {
+            Optional<PlayerEntity> player = playerRepository.findOneByFirstNameIgnoreCaseAndLastNameIgnoreCaseAndBirthDate(
+                    playerToCreate.firstName(), playerToCreate.lastName(), playerToCreate.birthDate());
+            if (player.isPresent()) {
+                log.warn("Player to create with firstName={} lastName={} and birthDate={} already exists",
+                        playerToCreate.firstName(), playerToCreate.lastName(), playerToCreate.birthDate());
+                throw new PlayerAlreadyExistsException(playerToCreate.firstName(), playerToCreate.lastName(), playerToCreate.birthDate());
+            }
+
             PlayerEntity playerToRegister = new PlayerEntity(
                     playerToCreate.lastName(),
                     playerToCreate.firstName(),
+                    UUID.randomUUID(),
                     playerToCreate.birthDate(),
                     playerToCreate.points(),
                     999999999);
@@ -100,6 +111,13 @@ public class PlayerService {
                 log.warn("Could not find player to update with identifier={}", playerToUpdate.identifier());
                 throw new PlayerNotFoundException(playerToUpdate.identifier());
             }
+            Optional<PlayerEntity> potentiallyDuplicatedPlayer = playerRepository.findOneByFirstNameIgnoreCaseAndLastNameIgnoreCaseAndBirthDate(
+                    playerToUpdate.firstName(), playerToUpdate.lastName(), playerToUpdate.birthDate());
+            if (potentiallyDuplicatedPlayer.isPresent() && !potentiallyDuplicatedPlayer.get().getIdentifier().equals(playerToUpdate.identifier())) {
+                log.warn("Player to update with firstName={} lastName={} and birthDate={} already exists",
+                        playerToUpdate.firstName(), playerToUpdate.lastName(), playerToUpdate.birthDate());
+                throw new PlayerAlreadyExistsException(playerToUpdate.firstName(), playerToUpdate.lastName(), playerToUpdate.birthDate());
+            }
 
             existingPlayer.get().setFirstName(playerToUpdate.firstName());
             existingPlayer.get().setLastName(playerToUpdate.lastName());
@@ -118,7 +136,7 @@ public class PlayerService {
         }
     }
 
-    public void delete(String identifier) {
+    public void delete(UUID identifier) {
         log.info("Invoking delete with identifier={}", identifier);
         try {
             Optional<PlayerEntity> playerDelete = playerRepository.findOneByIdentifier(identifier);

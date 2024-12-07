@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.UUID;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -82,7 +83,7 @@ public class PlayerControllerEndToEndTest {
     public void shouldUpdatePlayerRanking() {
         // Given
         PlayerToUpdate playerToUpdate = new PlayerToUpdate(
-                "rafaelnadaltest",
+                UUID.fromString("b466c6f7-52c6-4f25-b00d-c562be41311e"),
                 "Rafael",
                 "NadalTest",
                 LocalDate.of(1986, Month.JUNE, 3),
@@ -103,7 +104,7 @@ public class PlayerControllerEndToEndTest {
     public void shouldDeletePlayer() {
         // Given / When
         String url = "http://localhost:" + port + "/players";
-        this.restTemplate.exchange(url + "/novakdjokovictest", HttpMethod.DELETE, null, Player.class);
+        this.restTemplate.exchange(url + "/d27aef45-51cd-401b-a04a-b78a1327b793", HttpMethod.DELETE, null, Player.class);
         HttpEntity<List<Player>> allPlayersResponseEntity = this.restTemplate.exchange(
                 url,
                 HttpMethod.GET,

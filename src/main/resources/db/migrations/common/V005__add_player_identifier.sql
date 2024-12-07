@@ -1,2 +1,2 @@
 ALTER TABLE player
-ADD COLUMN identifier character varying(100);
+ADD COLUMN identifier uuid;

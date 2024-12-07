@@ -3,6 +3,7 @@ package com.dyma.tennis.data;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "player", schema = "public")
@@ -19,8 +20,8 @@ public class PlayerEntity {
     @Column(name = "first_name", length = 50, nullable = false)
     private String firstName;
 
-    @Column(name = "identifier", length = 100, nullable = false, unique = true)
-    private String identifier;
+    @Column(name = "identifier", nullable = false, unique = true)
+    private UUID identifier;
 
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
@@ -34,29 +35,23 @@ public class PlayerEntity {
     public PlayerEntity() {
     }
 
-    public PlayerEntity(String lastName, String firstName, LocalDate birthDate, Integer points, Integer rank) {
+    public PlayerEntity(String lastName, String firstName, UUID identifier, LocalDate birthDate, Integer points, Integer rank) {
         this.lastName = lastName;
         this.firstName = firstName;
-        this.identifier = generateIdentifier();
+        this.identifier = identifier;
         this.birthDate = birthDate;
         this.points = points;
         this.rank = rank;
     }
 
-    public PlayerEntity(Long id, String lastName, String firstName, LocalDate birthDate, Integer points, Integer rank) {
+    public PlayerEntity(Long id, String lastName, String firstName, UUID identifier, LocalDate birthDate, Integer points, Integer rank) {
         this.id = id;
         this.lastName = lastName;
         this.firstName = firstName;
-        this.identifier = generateIdentifier();
+        this.identifier = identifier;
         this.birthDate = birthDate;
         this.points = points;
         this.rank = rank;
-    }
-
-    private String generateIdentifier() {
-        return (this.firstName + this.lastName)
-                .toLowerCase()
-                .transform(s -> s.replaceAll("[^a-z0-9]", ""));
     }
 
     public Long getId() {
@@ -69,7 +64,6 @@ public class PlayerEntity {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-        this.identifier = generateIdentifier();
     }
 
     public String getFirstName() {
@@ -78,10 +72,9 @@ public class PlayerEntity {
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
-        this.identifier = generateIdentifier();
     }
 
-    public String getIdentifier() {
+    public UUID getIdentifier() {
         return identifier;
     }
 
