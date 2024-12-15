@@ -45,7 +45,7 @@ public class SecurityConfiguration {
                                         csp.policyDirectives("default-src 'self' data:; style-src 'self' 'unsafe-inline';")
                                 )
                                 .frameOptions(frameOptionsConfig -> frameOptionsConfig.deny())
-                                .permissionsPolicy(permissionsPolicyConfig -> permissionsPolicyConfig.policy(
+                                .permissionsPolicyHeader(permissionsPolicyConfig -> permissionsPolicyConfig.policy(
                                         "fullscreen=(self), geolocation=(), microphone=(), camera=()"
                                 ))
                 )
