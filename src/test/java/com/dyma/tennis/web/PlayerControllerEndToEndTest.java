@@ -1,7 +1,8 @@
 package com.dyma.tennis.web;
 
 import com.dyma.tennis.model.Player;
-import com.dyma.tennis.model.PlayerToSave;
+import com.dyma.tennis.model.PlayerToCreate;
+import com.dyma.tennis.model.PlayerToUpdate;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.flywaydb.core.Flyway;
@@ -21,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.UUID;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -41,7 +43,7 @@ public class PlayerControllerEndToEndTest {
     @Test
     public void shouldCreatePlayer() {
         // Given
-        PlayerToSave playerToCreate = new PlayerToSave(
+        PlayerToCreate playerToCreate = new PlayerToCreate(
                 "Carlos",
                 "Alcaraz",
                 LocalDate.of(2003, Month.MAY, 5),
@@ -50,7 +52,7 @@ public class PlayerControllerEndToEndTest {
 
         // When
         String url = "http://localhost:" + port + "/players";
-        HttpEntity<PlayerToSave> request = new HttpEntity<>(playerToCreate);
+        HttpEntity<PlayerToCreate> request = new HttpEntity<>(playerToCreate);
         ResponseEntity<Player> playerResponseEntity = this.restTemplate.exchange(url, HttpMethod.POST, request, Player.class);
 
         // Then
@@ -61,7 +63,7 @@ public class PlayerControllerEndToEndTest {
     @Test
     public void shouldFailToCreatePlayer_WhenPlayerToCreateIsInvalid() {
         // Given
-        PlayerToSave playerToCreate = new PlayerToSave(
+        PlayerToCreate playerToCreate = new PlayerToCreate(
                 "Carlos",
                 null,
                 LocalDate.of(2003, Month.MAY, 5),
@@ -70,7 +72,7 @@ public class PlayerControllerEndToEndTest {
 
         // When
         String url = "http://localhost:" + port + "/players";
-        HttpEntity<PlayerToSave> request = new HttpEntity<>(playerToCreate);
+        HttpEntity<PlayerToCreate> request = new HttpEntity<>(playerToCreate);
         ResponseEntity<Player> playerResponseEntity = this.restTemplate.exchange(url, HttpMethod.POST, request, Player.class);
 
         // Then
@@ -80,7 +82,8 @@ public class PlayerControllerEndToEndTest {
     @Test
     public void shouldUpdatePlayerRanking() {
         // Given
-        PlayerToSave playerToUpdate = new PlayerToSave(
+        PlayerToUpdate playerToUpdate = new PlayerToUpdate(
+                UUID.fromString("b466c6f7-52c6-4f25-b00d-c562be41311e"),
                 "Rafael",
                 "NadalTest",
                 LocalDate.of(1986, Month.JUNE, 3),
@@ -89,7 +92,7 @@ public class PlayerControllerEndToEndTest {
 
         // When
         String url = "http://localhost:" + port + "/players";
-        HttpEntity<PlayerToSave> request = new HttpEntity<>(playerToUpdate);
+        HttpEntity<PlayerToUpdate> request = new HttpEntity<>(playerToUpdate);
         ResponseEntity<Player> playerResponseEntity = this.restTemplate.exchange(url, HttpMethod.PUT, request, Player.class);
 
         // Then
@@ -101,7 +104,7 @@ public class PlayerControllerEndToEndTest {
     public void shouldDeletePlayer() {
         // Given / When
         String url = "http://localhost:" + port + "/players";
-        this.restTemplate.exchange(url + "/djokovictest", HttpMethod.DELETE, null, Player.class);
+        this.restTemplate.exchange(url + "/d27aef45-51cd-401b-a04a-b78a1327b793", HttpMethod.DELETE, null, Player.class);
         HttpEntity<List<Player>> allPlayersResponseEntity = this.restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -113,6 +116,9 @@ public class PlayerControllerEndToEndTest {
         // Then
         Assertions.assertThat(allPlayersResponseEntity.getBody())
                 .extracting("lastName", "rank.position")
-                .containsExactly(Tuple.tuple("NadalTest", 1), Tuple.tuple("FedererTest", 2));
+                .containsExactly(
+                        Tuple.tuple("NadalTest", 1),
+                        Tuple.tuple("FedererTest", 2)
+                );
     }
 }

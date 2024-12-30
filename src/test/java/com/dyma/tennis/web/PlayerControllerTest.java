@@ -11,6 +11,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -43,11 +45,11 @@ public class PlayerControllerTest {
     @Test
     public void shouldRetrievePlayer() throws Exception {
         // Given
-        String playerToRetrieve = "nadal";
-        Mockito.when(playerService.getByLastName(playerToRetrieve)).thenReturn(PlayerList.RAFAEL_NADAL);
+        UUID playerToRetrieve = UUID.fromString("b466c6f7-52c6-4f25-b00d-c562be41311e");
+        Mockito.when(playerService.getByIdentifier(playerToRetrieve)).thenReturn(PlayerList.RAFAEL_NADAL);
 
         // When / Then
-        mockMvc.perform(get("/players/nadal"))
+        mockMvc.perform(get("/players/b466c6f7-52c6-4f25-b00d-c562be41311e"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastName", CoreMatchers.is("Nadal")))
                 .andExpect(jsonPath("$.rank.position", CoreMatchers.is(1)));
@@ -56,11 +58,11 @@ public class PlayerControllerTest {
     @Test
     public void shouldReturn404NotFound_WhenPlayerDoesNotExist() throws Exception {
         // Given
-        String playerToRetrieve = "doe";
-        Mockito.when(playerService.getByLastName(playerToRetrieve)).thenThrow(new PlayerNotFoundException("Player doe does not exist"));
+        UUID playerToRetrieve = UUID.fromString("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
+        Mockito.when(playerService.getByIdentifier(playerToRetrieve)).thenThrow(new PlayerNotFoundException(playerToRetrieve));
 
         // When / Then
-        mockMvc.perform(get("/players/doe"))
+        mockMvc.perform(get("/players/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb"))
                 .andExpect(status().isNotFound());
     }
 }
