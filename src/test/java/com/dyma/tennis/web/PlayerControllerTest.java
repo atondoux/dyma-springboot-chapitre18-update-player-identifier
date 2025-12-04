@@ -3,26 +3,24 @@ package com.dyma.tennis.web;
 import com.dyma.tennis.data.PlayerList;
 import com.dyma.tennis.service.PlayerNotFoundException;
 import com.dyma.tennis.service.PlayerService;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.when;
 
 @WebMvcTest(controllers = PlayerController.class)
 public class PlayerControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private MockMvcTester mockMvc;
 
     @MockitoBean
     private PlayerService playerService;
@@ -30,16 +28,20 @@ public class PlayerControllerTest {
     @Test
     public void shouldListAllPlayers() throws Exception {
         // Given
-        Mockito.when(playerService.getAllPlayers()).thenReturn(PlayerList.ALL);
+        when(playerService.getAllPlayers()).thenReturn(PlayerList.ALL);
 
-        // When / Then
-        mockMvc.perform(get("/players"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(4)))
-                .andExpect(jsonPath("$[0].lastName", CoreMatchers.is("Nadal")))
-                .andExpect(jsonPath("$[1].lastName", CoreMatchers.is("Djokovic")))
-                .andExpect(jsonPath("$[2].lastName", CoreMatchers.is("Federer")))
-                .andExpect(jsonPath("$[3].lastName", CoreMatchers.is("Murray")));
+        // When
+        var response = mockMvc.get().uri("/players")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange();
+
+        // Then
+        var json = response.assertThat().hasStatus(HttpStatus.OK).bodyJson();
+        json.extractingPath("$.length()").isEqualTo(4);
+        json.extractingPath("$[0].lastName").isEqualTo("Nadal");
+        json.extractingPath("$[1].lastName").isEqualTo("Djokovic");
+        json.extractingPath("$[2].lastName").isEqualTo("Federer");
+        json.extractingPath("$[3].lastName").isEqualTo("Murray");
     }
 
     @Test
@@ -48,11 +50,15 @@ public class PlayerControllerTest {
         UUID playerToRetrieve = UUID.fromString("b466c6f7-52c6-4f25-b00d-c562be41311e");
         Mockito.when(playerService.getByIdentifier(playerToRetrieve)).thenReturn(PlayerList.RAFAEL_NADAL);
 
-        // When / Then
-        mockMvc.perform(get("/players/b466c6f7-52c6-4f25-b00d-c562be41311e"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lastName", CoreMatchers.is("Nadal")))
-                .andExpect(jsonPath("$.rank.position", CoreMatchers.is(1)));
+        // When
+        var response = mockMvc.get().uri("/players/b466c6f7-52c6-4f25-b00d-c562be41311e")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange();
+
+        // Then
+        var json = response.assertThat().hasStatus(HttpStatus.OK).bodyJson();
+        json.extractingPath("$.lastName").isEqualTo("Nadal");
+        json.extractingPath("$.rank.position").isEqualTo(1);
     }
 
     @Test
@@ -61,8 +67,13 @@ public class PlayerControllerTest {
         UUID playerToRetrieve = UUID.fromString("aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb");
         Mockito.when(playerService.getByIdentifier(playerToRetrieve)).thenThrow(new PlayerNotFoundException(playerToRetrieve));
 
-        // When / Then
-        mockMvc.perform(get("/players/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb"))
-                .andExpect(status().isNotFound());
+        // When
+        var response = mockMvc.get().uri("/players/aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange();
+
+        // Then
+        var json = response.assertThat().hasStatus(HttpStatus.NOT_FOUND).bodyJson();
+        json.extractingPath("$.errorDetails").isEqualTo("Player with identifier aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb could not be found.");
     }
 }
