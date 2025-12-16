@@ -4,31 +4,26 @@ import com.dyma.tennis.data.PlayerEntityList;
 import com.dyma.tennis.data.PlayerRepository;
 import com.dyma.tennis.model.Player;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataRetrievalFailureException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
+@ExtendWith(MockitoExtension.class)
 public class PlayerServiceTest {
 
     @Mock
     private PlayerRepository playerRepository;
 
+    @InjectMocks
     private PlayerService playerService;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        playerService = new PlayerService(playerRepository);
-    }
 
     @Test
     public void shouldReturnPlayersRanking() {
@@ -50,10 +45,9 @@ public class PlayerServiceTest {
         Mockito.when(playerRepository.findAll()).thenThrow(new DataRetrievalFailureException("Data access error"));
 
         // When / Then
-        Exception exception = assertThrows(PlayerDataRetrievalException.class, () -> {
-            playerService.getAllPlayers();
-        });
-        Assertions.assertThat(exception.getMessage()).isEqualTo("Could not retrieve player data");
+        Assertions.assertThatThrownBy(() -> playerService.getAllPlayers())
+                .isInstanceOf(PlayerDataRetrievalException.class)
+                .hasMessage("Could not retrieve player data");
     }
 
     @Test
@@ -76,9 +70,8 @@ public class PlayerServiceTest {
         Mockito.when(playerRepository.findOneByIdentifier(unknownPlayer)).thenReturn(Optional.empty());
 
         // When / Then
-        Exception exception = assertThrows(PlayerNotFoundException.class, () -> {
-            playerService.getByIdentifier(unknownPlayer);
-        });
-        Assertions.assertThat(exception.getMessage()).isEqualTo("Player with identifier aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb could not be found.");
+        Assertions.assertThatThrownBy(() -> playerService.getByIdentifier(unknownPlayer))
+                .isInstanceOf(PlayerNotFoundException.class)
+                .hasMessage("Player with identifier aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb could not be found.");
     }
 }
